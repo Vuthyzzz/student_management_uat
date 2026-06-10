@@ -45,10 +45,18 @@
 <!-- Table Section -->
 <div class="mt-8 bg-white p-6 rounded-xl shadow">
 
-    <h2 class="text-lg font-semibold mb-4">Recent Students</h2>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <div>
+            <h2 class="text-lg font-semibold">Recent Students</h2>
+            <p class="text-sm text-gray-500">Generate an Excel-compatible student report from the table below for offline review or import into spreadsheets.</p>
+        </div>
+        <button id="exportReportButton" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Export Report to Excel
+        </button>
+    </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[480px] border">
+        <table id="studentsTable" class="w-full min-w-120 border">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="p-2">ID</th>
@@ -108,4 +116,30 @@ new Chart(ctx, {
 });
 </script>
 @endif
+<script>
+function downloadExcelReport() {
+    const table = document.getElementById('studentsTable');
+    if (!table) {
+        return;
+    }
+
+    const rows = Array.from(table.querySelectorAll('thead tr, tbody tr'));
+    const csvContent = rows.map(row => {
+        const cells = Array.from(row.querySelectorAll('th, td'));
+        return cells.map(cell => `"${cell.innerText.replace(/"/g, '""')}"`).join(',');
+    }).join('\r\n');
+
+    const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'student-report.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+document.getElementById('exportReportButton')?.addEventListener('click', downloadExcelReport);
+</script>
 @endsection
